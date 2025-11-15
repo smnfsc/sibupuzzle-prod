@@ -1,0 +1,4 @@
+project_id = "qqulooaqqkgfxqaugajq"
+
+[functions.find-puzzle-price]
+verify_jwt = true
