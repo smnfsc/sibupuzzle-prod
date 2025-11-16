@@ -309,24 +309,13 @@ const PuzzleList = () => {
     setLoadingPrice(prev => ({ ...prev, [puzzleId]: true }));
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/find-puzzle-price`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({ puzzle_id: puzzleId }),
-        }
-      );
+      const { data: result, error: invokeError } = await supabase.functions.invoke('find-puzzle-price', {
+        body: { puzzle_id: puzzleId }
+      });
 
-      const result = await response.json();
+      if (invokeError) throw invokeError;
 
-      if (result.success) {
+      if (result?.success) {
         toast({
           title: "Prezzo trovato!",
           description: result.cached ? "Risultati dalla cache" : "Nuova ricerca completata",
@@ -641,9 +630,10 @@ const PuzzleList = () => {
       {selectedPuzzleForHistory && (
         <PriceHistoryDialog
           puzzle={selectedPuzzleForHistory}
-          onPriceSelect={(price) => {
-            // Optional: Handle price selection if needed
-            setShowPriceHistory(false);
+          open={showPriceHistory}
+          onOpenChange={(o) => {
+            setShowPriceHistory(o);
+            if (!o) setSelectedPuzzleForHistory(null);
           }}
         />
       )}

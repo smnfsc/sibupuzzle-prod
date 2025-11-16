@@ -16,6 +16,8 @@ import { it } from "date-fns/locale";
 interface Props {
   puzzle: Puzzle;
   onPriceSelect?: (price: number) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const countryFlags: Record<string, string> = {
@@ -94,7 +96,7 @@ const calculateRecommendedPrice = (
   return { price: recommendedPrice, reasoning };
 };
 
-export function PriceHistoryDialog({ puzzle, onPriceSelect }: Props) {
+export function PriceHistoryDialog({ puzzle, onPriceSelect, open: controlledOpen, onOpenChange }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -111,6 +113,10 @@ export function PriceHistoryDialog({ puzzle, onPriceSelect }: Props) {
     cacheDate?: string;
     validUntil?: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (controlledOpen !== undefined) setOpen(controlledOpen);
+  }, [controlledOpen]);
 
   // Carica storico ricerche
   const loadSearchHistory = async () => {
@@ -386,13 +392,15 @@ export function PriceHistoryDialog({ puzzle, onPriceSelect }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <Search className="h-4 w-4" />
-          Trova Prezzo
-        </Button>
-      </DialogTrigger>
+    <Dialog open={controlledOpen ?? open} onOpenChange={(o) => { setOpen(o); onOpenChange?.(o); }}>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button variant="outline" className="gap-2">
+            <Search className="h-4 w-4" />
+            Trova Prezzo
+          </Button>
+        </DialogTrigger>
+      )}
       
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
